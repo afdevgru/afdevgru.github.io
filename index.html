@@ -1,5 +1,141 @@
-<html>
-  <body>
-    Hello.
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Info</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace; /* Console-like font */
+            background-color: black; /* Black background */
+            color: #00FF00; /* Console green text color */
+            margin: 20px;
+            padding: 0;
+        }
+        h1 {
+            color: red; /* Set H1 text color to red */
+            font-size: 2em;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: .15em solid #00FF00; /* Console green caret effect */
+            animation: typing 4s steps(30, end) 1s forwards, blink-caret .75s step-end infinite;
+            display: inline-block;
+            font-weight: bold;
+        }
+        .info {
+            margin-bottom: 10px;
+        }
+        #map {
+            height: 200px; /* Set the height of the map */
+            width: 100%; /* Make the map take full width of its container */
+        }
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #00FF00; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Access Denied</h1>
+    <div class="info" id="ip">IP Address: Loading...</div>
+    <div class="info" id="location">Location: Loading...</div>
+    <div id="map"></div>
+    <div class="info" id="browser">Browser: Loading...</div>
+    <div class="info" id="os">Operating System: Loading...</div>
+    <div class="info" id="resolution">Screen Resolution: Loading...</div>
+    <div class="info" id="language">Language: Loading...</div>
+    <div class="info" id="timezone">Time Zone: Loading...</div>
+    <div class="info" id="referrer">Referrer URL: Loading...</div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Function to get and display browser information
+        function displayBrowserInfo() {
+            const browserInfo = `${navigator.userAgent}`;
+            document.getElementById('browser').textContent = `Browser: ${browserInfo}`;
+        }
+
+        // Function to get and display operating system information
+        function displayOSInfo() {
+            const osInfo = navigator.platform;
+            document.getElementById('os').textContent = `Operating System: ${osInfo}`;
+        }
+
+        // Function to get and display screen resolution
+        function displayScreenResolution() {
+            const width = window.screen.width;
+            const height = window.screen.height;
+            document.getElementById('resolution').textContent = `Screen Resolution: ${width}x${height}`;
+        }
+
+        // Function to get and display browser language
+        function displayLanguage() {
+            const language = navigator.language || navigator.userLanguage;
+            document.getElementById('language').textContent = `Language: ${language}`;
+        }
+
+        // Function to get and display time zone
+        function displayTimeZone() {
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('timezone').textContent = `Time Zone: ${timeZone}`;
+        }
+
+        // Function to get and display referrer URL
+        function displayReferrer() {
+            const referrer = document.referrer;
+            document.getElementById('referrer').textContent = `Referrer URL: ${referrer ? referrer : 'N/A'}`;
+        }
+
+        // Function to get IP and location information using an external API
+        async function fetchIpAndLocation() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                const ipAddress = data.ip;
+
+                // Display IP Address
+                document.getElementById('ip').textContent = `IP Address: ${ipAddress}`;
+
+                // Fetch location data
+                const locationResponse = await fetch(`https://ipapi.co/${ipAddress}/json/`);
+                const locationData = await locationResponse.json();
+                const locationInfo = `${locationData.city}, ${locationData.region}, ${locationData.country_name}`;
+                const lat = locationData.latitude;
+                const lon = locationData.longitude;
+
+                // Display location
+                document.getElementById('location').textContent = `Location: ${locationInfo}`;
+
+                // Initialize and display the map
+                const map = L.map('map').setView([lat, lon], 10); // Set map center and zoom level
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+
+                L.marker([lat, lon]).addTo(map)
+                    .bindPopup('You are here')
+                    .openPopup();
+
+            } catch (error) {
+                console.error('Error fetching IP or location data:', error);
+                document.getElementById('location').textContent = 'Location: Error fetching data';
+            }
+        }
+
+        // Run functions to display information
+        displayBrowserInfo();
+        displayOSInfo();
+        displayScreenResolution();
+        displayLanguage();
+        displayTimeZone();
+        displayReferrer();
+        fetchIpAndLocation();
+    </script>
+</body>
 </html>
